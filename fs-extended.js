@@ -180,10 +180,10 @@
         });
     };
 
-    exports.md5File = function(sFile, fCallback) {
+    exports.md5FileToBase64 = function(sFile, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
-        exec('md5sum ' + sFile, function(oError, sSTDOut, sSTDError) {
+        exec('openssl dgst -md5 -binary ' + sFile + ' | openssl enc -base64', function(oError, sSTDOut, sSTDError) {
             if (oError) {
                 fCallback(oError);
             } else {

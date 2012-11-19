@@ -180,6 +180,19 @@
         });
     };
 
+    exports.md5File = function(sFile, fCallback) {
+        fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
+
+        exec('md5sum ' + sFile, function(oError, sSTDOut, sSTDError) {
+            if (oError) {
+                fCallback(oError);
+            } else {
+                var aHash = sSTDOut.replace(/^\s+|\s+$/g, '').split(' ');
+                fCallback(null, aHash[0]);
+            }
+        });
+    };
+
     exports.hashFile = function(sFile, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 

@@ -1,5 +1,4 @@
     var fs      = require('fs');
-    var fsX     = require('fs-extended');
     var path    = require('path');
     var util    = require('util');
     var url     = require('url');

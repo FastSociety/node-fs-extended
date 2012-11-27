@@ -1,4 +1,5 @@
     var fs      = require('fs');
+    var fsX     = require('fs-extended');
     var path    = require('path');
     var util    = require('util');
     var url     = require('url');
@@ -7,6 +8,21 @@
     var async   = require('async');
     var exec    = require('child_process').exec
     var syslog  = require('syslog-console').init('FSExtended');
+
+    exports.clearTmp = function(fCallback) {
+        var sTmp = exports.getTmpSync;
+        exports.removeDirectory(sTmp, function() {
+            exports.mkdirP(sTmp, fCallback);
+        });
+    };
+
+    exports.getTmp = function(fCallback) {
+        fCallback(exports.getTmpSync());
+    };
+
+    exports.getTmpSync = function() {
+        return '/tmp/' + process.pid + '/';
+    };
 
     exports.removeDirectories = function(aPaths, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
@@ -277,7 +293,7 @@
 
                 oResponse.on('end', function () {
                     var sHash      = oSHASum.digest('hex');
-                    var sFinalFile = '/tmp/' + sHash + sExtension;
+                    var sFinalFile = exports.getTmpSync() + sHash + sExtension;
                     fs.writeFile(sFinalFile, sContents, sType, function(oError) {
                         fs.chmod(sFinalFile, 0777, function() {
                             fCallback(sFinalFile, sHash);

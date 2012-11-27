@@ -9,7 +9,7 @@
     var syslog  = require('syslog-console').init('FSExtended');
 
     exports.clearTmp = function(fCallback) {
-        var sTmp = exports.getTmpSync;
+        var sTmp = exports.getTmpSync();
         exports.removeDirectory(sTmp, function() {
             exports.mkdirP(sTmp, fCallback);
         });

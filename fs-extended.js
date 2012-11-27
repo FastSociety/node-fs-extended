@@ -6,6 +6,7 @@
     var crypto  = require('crypto');
     var async   = require('async');
     var exec    = require('child_process').exec
+    var syslog  = require('syslog-console').init('FSExtended');
 
     exports.removeDirectories = function(aPaths, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
@@ -64,19 +65,19 @@
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
         if (sFromFile != sToFile) {
+            syslog.debug({action: 'fs-extended.copyFile', from: sFromFile, to: sToFile});
             util.pump(fs.createReadStream(sFromFile), fs.createWriteStream(sToFile), function(oError) { // CANNOT use fs.rename due to partition limitations
                 if (oError) {
+                    syslog.error({action: 'fs-extended.copyFile.error', error: oError});
                     fCallback(oError);
                 } else {
-                    exports.copyDirectoryPropertiesToFile(sToFile, function() {
-                        fCallback(null, sToFile);
-                    });
+                    syslog.debug({action: 'fs-extended.copyFile.done', output: sToFile});
+                    fCallback(null, sToFile);
                 }
             });
         } else {
-            exports.copyDirectoryPropertiesToFile(sToFile, function() {
-                fCallback(null, sToFile);
-            });
+            syslog.debug({action: 'fs-extended.copyFile.sameFile', output: sToFile});
+            fCallback(null, sToFile);
         }
     };
 
@@ -130,16 +131,25 @@
 
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
+        syslog.debug({action: 'fs-extended.moveFileToHash', from: sFromFile, path: sPath, extension: sExtension});
         exports.hashFile(sFromFile, function(oError, sHash) {
             if (oError) {
+                syslog.debug({action: 'fs-extended.moveFileToHash.hashFile.error', error: oError});
                 fCallback(oError);
             } else {
                 var sDestination = path.join(sPath, sHash) + sExtension;
                 exports.moveFile(sFromFile, sDestination, function(oMoveError, sDestination) {
-                    fCallback(oMoveError, {
-                        path: sDestination,
-                        hash: sHash
-                    });
+                    if (oMoveError) {
+                        syslog.debug({action: 'fs-extended.moveFileToHash.moveFile.error', error: oMoveError});
+                        fCallback(oMoveError);
+                    } else {
+                        var oOutput = {
+                            path: sDestination,
+                            hash: sHash
+                        };
+                        syslog.debug({action: 'fs-extended.moveFileToHash.done', output: oOutput});
+                        fCallback(null, oOutput);
+                    }
                 });
             }
         });
@@ -148,23 +158,26 @@
     exports.moveFile = function(sFromFile, sToFile, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
-        exports.copyFile(sFromFile, sToFile, function(oCopyError) {
-            if (oCopyError) {
-                console.error('fsX.move.copy.error', oCopyError)
-            }
+        if (sFromFile != sToFile) {
+            syslog.debug({action: 'fs-extended.moveFile', from: sFromFile, to: sToFile});
+            exports.copyFile(sFromFile, sToFile, function(oCopyError) {
+                if (oCopyError) {
+                    syslog.error({action: 'fs-extended.moveFile.copy', error: oCopyError});
+                }
 
-            if (sFromFile != sToFile) {
                 fs.unlink(sFromFile, function(oUnlinkError) {
                     if (oUnlinkError) {
-                        console.error('fsX.move.unlink.error', oUnlinkError)
+                        syslog.error({action: 'fs-extended.moveFile.unlink', error: oUnlinkError});
                     }
 
+                    syslog.error({action: 'fs-extended.moveFile.done', output: sToFile});
                     fCallback(null, sToFile);
                 });
-            } else {
-                fCallback(null, sToFile);
-            }
-        });
+            });
+        } else {
+            syslog.debug({action: 'fs-extended.moveFile.sameFile', output: sToFile});
+            fCallback(null, sToFile);
+        }
     };
 
     exports.directorySize = function(sPath, fCallback) {
@@ -196,12 +209,17 @@
     exports.hashFile = function(sFile, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
+        syslog.debug({action: 'fs-extended.hashFile', input: sFile});
         exec('sha1sum ' + sFile, function(oError, sSTDOut, sSTDError) {
             if (oError) {
+                syslog.error({action: 'fs-extended.hashFile.error', error: oError, stdErr: sSTDError});
                 fCallback(oError);
             } else {
                 var aHash = sSTDOut.replace(/^\s+|\s+$/g, '').split(' ');
-                fCallback(null, aHash[0]);
+                var sHash = aHash[0];
+
+                syslog.debug({action: 'fs-extended.hashFile.done', output: sHash});
+                fCallback(null, sHash);
             }
         });
     };
@@ -209,8 +227,10 @@
     exports.hashDirectoryFiles = function(sPath, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
+        syslog.debug({action: 'fs-extended.hashDirectoryFiles', path: sPath});
         exec('sha1sum ' + path.join(sPath, '/*'), function(oError, sSTDOut, sSTDError) {
             if (oError) {
+                syslog.error({action: 'fs-extended.hashDirectoryFiles.error', error: oError, stdErr: sSTDError});
                 fCallback(oError);
             } else {
                 var oHashes = {};
@@ -221,6 +241,7 @@
                     oHashes[aHash[1]] = aHash[0];
                 }
 
+                syslog.debug({action: 'fs-extended.hashDirectoryFiles.done', output: oHashes});
                 fCallback(null, oHashes);
             }
         });

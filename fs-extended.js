@@ -170,7 +170,7 @@
                         syslog.error({action: 'fs-extended.moveFile.unlink', error: oUnlinkError});
                     }
 
-                    syslog.error({action: 'fs-extended.moveFile.done', output: sToFile});
+                    syslog.debug({action: 'fs-extended.moveFile.done', output: sToFile});
                     fCallback(null, sToFile);
                 });
             });

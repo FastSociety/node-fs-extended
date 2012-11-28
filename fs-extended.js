@@ -211,12 +211,16 @@
     exports.md5FileToBase64 = function(sFile, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
+        syslog.debug({action: 'fs-extended.md5FileToBase64', input: sFile});
         exec('openssl dgst -md5 -binary ' + sFile + ' | openssl enc -base64', function(oError, sSTDOut, sSTDError) {
             if (oError) {
                 fCallback(oError);
             } else {
                 var aHash = sSTDOut.replace(/^\s+|\s+$/g, '').split(' ');
-                fCallback(null, aHash[0]);
+                var sHash = aHash[0];
+
+                syslog.debug({action: 'fs-extended.md5FileToBase64.done', output: sHash});
+                fCallback(null, sHash);
             }
         });
     };

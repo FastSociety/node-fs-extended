@@ -202,7 +202,7 @@
             if (oError) {
                 fCallback(oError);
             } else {
-                var aDU = sSTDOut.replace(/^\s+|\s+$/g, '').split(' ');
+                var aDU = sSTDOut.replace(/^\s+|\s+$/g, '').split('\t');
                 fCallback(null, aDU[0]);
             }
         });

@@ -138,6 +138,45 @@
      * @param {String} [sExtension]
      * @param {Function} fCallback
      */
+    exports.copyFileToHash = function(sFromFile, sPath, sExtension, fCallback) {
+        if (typeof sExtension == 'function') {
+            fCallback  = sExtension;
+            sExtension = '';
+        }
+
+        fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
+
+        syslog.debug({action: 'fs-extended.copyFileToHash', from: sFromFile, path: sPath, extension: sExtension});
+        exports.hashFile(sFromFile, function(oError, sHash) {
+            if (oError) {
+                syslog.debug({action: 'fs-extended.copyFileToHash.hashFile.error', error: oError});
+                fCallback(oError);
+            } else {
+                var sDestination = path.join(sPath, sHash) + sExtension;
+                exports.copyFile(sFromFile, sDestination, function(oCopyError, sDestination) {
+                    if (oCopyError) {
+                        syslog.debug({action: 'fs-extended.copyFileToHash.copyFile.error', error: oCopyError});
+                        fCallback(oCopyError);
+                    } else {
+                        var oOutput = {
+                            path: sDestination,
+                            hash: sHash
+                        };
+                        syslog.debug({action: 'fs-extended.copyFileToHash.done', output: oOutput});
+                        fCallback(null, oOutput);
+                    }
+                });
+            }
+        });
+    };
+
+    /**
+     *
+     * @param {String} sFromFile
+     * @param {String} sPath
+     * @param {String} [sExtension]
+     * @param {Function} fCallback
+     */
     exports.moveFileToHash = function(sFromFile, sPath, sExtension, fCallback) {
         if (typeof sExtension == 'function') {
             fCallback  = sExtension;

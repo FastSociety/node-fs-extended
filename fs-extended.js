@@ -146,6 +146,7 @@
 
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
+        var iStart = syslog.timeStart();
         syslog.debug({action: 'fs-extended.copyFileToHash', from: sFromFile, path: sPath, extension: sExtension});
         exports.hashFile(sFromFile, function(oError, sHash) {
             if (oError) {
@@ -162,7 +163,8 @@
                             path: sDestination,
                             hash: sHash
                         };
-                        syslog.debug({action: 'fs-extended.copyFileToHash.done', output: oOutput});
+
+                        syslog.timeStop(iStart, {action: 'fs-extended.copyFileToHash.done', output: oOutput});
                         fCallback(null, oOutput);
                     }
                 });
@@ -185,6 +187,7 @@
 
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
+        var iStart = syslog.timeStart();
         syslog.debug({action: 'fs-extended.moveFileToHash', from: sFromFile, path: sPath, extension: sExtension});
         exports.hashFile(sFromFile, function(oError, sHash) {
             if (oError) {
@@ -201,7 +204,8 @@
                             path: sDestination,
                             hash: sHash
                         };
-                        syslog.debug({action: 'fs-extended.moveFileToHash.done', output: oOutput});
+
+                        syslog.timeStop(iStart, {action: 'fs-extended.moveFileToHash.done', output: oOutput});
                         fCallback(null, oOutput);
                     }
                 });
@@ -267,6 +271,7 @@
     exports.hashFile = function(sFile, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
+        var iStart = syslog.timeStart();
         syslog.debug({action: 'fs-extended.hashFile', input: sFile});
         exec('sha1sum ' + sFile, function(oError, sSTDOut, sSTDError) {
             if (oError) {
@@ -276,7 +281,7 @@
                 var aHash = sSTDOut.replace(/^\s+|\s+$/g, '').split(' ');
                 var sHash = aHash[0];
 
-                syslog.debug({action: 'fs-extended.hashFile.done', output: sHash});
+                syslog.timeStop(iStart, {action: 'fs-extended.hashFile.done', output: sHash});
                 fCallback(null, sHash);
             }
         });

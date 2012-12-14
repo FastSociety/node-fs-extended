@@ -79,6 +79,7 @@
     exports.copyFile = function(sFromFile, sToFile, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
+        var iStart = syslog.timeStart();
         if (sFromFile != sToFile) {
             syslog.debug({action: 'fs-extended.copyFile', from: sFromFile, to: sToFile});
             util.pump(fs.createReadStream(sFromFile), fs.createWriteStream(sToFile), function(oError) { // CANNOT use fs.rename due to partition limitations
@@ -86,7 +87,7 @@
                     syslog.error({action: 'fs-extended.copyFile.error', error: oError});
                     fCallback(oError);
                 } else {
-                    syslog.debug({action: 'fs-extended.copyFile.done', output: sToFile});
+                    syslog.timeStop(iStart, {action: 'fs-extended.copyFile.done', output: sToFile});
                     fCallback(null, sToFile);
                 }
             });
@@ -217,6 +218,7 @@
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
         if (sFromFile != sToFile) {
+            var iStart = syslog.timeStart();
             syslog.debug({action: 'fs-extended.moveFile', from: sFromFile, to: sToFile});
             exports.copyFile(sFromFile, sToFile, function(oCopyError) {
                 if (oCopyError) {
@@ -228,7 +230,7 @@
                         syslog.error({action: 'fs-extended.moveFile.unlink', error: oUnlinkError});
                     }
 
-                    syslog.debug({action: 'fs-extended.moveFile.done', output: sToFile});
+                    syslog.timeStop(iStart, {action: 'fs-extended.moveFile.done', output: sToFile});
                     fCallback(null, sToFile);
                 });
             });

@@ -11,7 +11,7 @@
     exports.clearTmp = function(fCallback) {
         var sTmp = exports.getTmpSync();
         exports.removeDirectory(sTmp, function() {
-            exports.mkdirP(sTmp, fCallback);
+            exports.mkdirP(sTmp, 0777, fCallback);
         });
     };
 
@@ -368,7 +368,11 @@
         position = position || 0;
 
         if (position >= parts.length) {
-            return callback();
+            if (typeof callback == "function") {
+                return callback();
+            } else {
+                return;
+            }
         }
 
         var directory = parts.slice(0, position + 1).join(osSep) || osSep;

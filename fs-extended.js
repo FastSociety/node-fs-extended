@@ -23,6 +23,10 @@
         return '/tmp/cameo/' + process.pid + '/';
     };
 
+    exports.killTmp = function(fCallback) {
+        exports.removeDirectory(exports.getTmpSync(), fCallback);
+    };
+
     exports.removeDirectories = function(aPaths, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 

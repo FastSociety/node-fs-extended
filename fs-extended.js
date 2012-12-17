@@ -20,7 +20,7 @@
     };
 
     exports.getTmpSync = function() {
-        return '/tmp/' + process.pid + '/';
+        return '/tmp/cameo/' + process.pid + '/';
     };
 
     exports.removeDirectories = function(aPaths, fCallback) {

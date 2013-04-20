@@ -85,7 +85,7 @@
 
         var iStart = syslog.timeStart();
         if (sFromFile != sToFile) {
-            syslog.debug({action: 'fs-extended.copyFile', from: sFromFile, to: sToFile});
+            //syslog.debug({action: 'fs-extended.copyFile', from: sFromFile, to: sToFile});
             util.pump(fs.createReadStream(sFromFile), fs.createWriteStream(sToFile), function(oError) { // CANNOT use fs.rename due to partition limitations
                 if (oError) {
                     syslog.error({action: 'fs-extended.copyFile.error', error: oError});
@@ -96,7 +96,7 @@
                 }
             });
         } else {
-            syslog.debug({action: 'fs-extended.copyFile.sameFile', output: sToFile});
+            //syslog.debug({action: 'fs-extended.copyFile.sameFile', output: sToFile});
             fCallback(null, sToFile);
         }
     };
@@ -152,7 +152,7 @@
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
         var iStart = syslog.timeStart();
-        syslog.debug({action: 'fs-extended.copyFileToHash', from: sFromFile, path: sPath, extension: sExtension});
+        //syslog.debug({action: 'fs-extended.copyFileToHash', from: sFromFile, path: sPath, extension: sExtension});
         exports.hashFile(sFromFile, function(oError, sHash) {
             if (oError) {
                 syslog.debug({action: 'fs-extended.copyFileToHash.hashFile.error', error: oError});
@@ -193,7 +193,7 @@
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
         var iStart = syslog.timeStart();
-        syslog.debug({action: 'fs-extended.moveFileToHash', from: sFromFile, path: sPath, extension: sExtension});
+        //syslog.debug({action: 'fs-extended.moveFileToHash', from: sFromFile, path: sPath, extension: sExtension});
         exports.hashFile(sFromFile, function(oError, sHash) {
             if (oError) {
                 syslog.debug({action: 'fs-extended.moveFileToHash.hashFile.error', error: oError});
@@ -223,7 +223,7 @@
 
         if (sFromFile != sToFile) {
             var iStart = syslog.timeStart();
-            syslog.debug({action: 'fs-extended.moveFile', from: sFromFile, to: sToFile});
+            //syslog.debug({action: 'fs-extended.moveFile', from: sFromFile, to: sToFile});
             exports.copyFile(sFromFile, sToFile, function(oCopyError) {
                 if (oCopyError) {
                     syslog.error({action: 'fs-extended.moveFile.copy', error: oCopyError});
@@ -239,7 +239,7 @@
                 });
             });
         } else {
-            syslog.debug({action: 'fs-extended.moveFile.sameFile', output: sToFile});
+            //syslog.debug({action: 'fs-extended.moveFile.sameFile', output: sToFile});
             fCallback(null, sToFile);
         }
     };
@@ -260,7 +260,7 @@
     exports.md5FileToBase64 = function(sFile, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
-        syslog.debug({action: 'fs-extended.md5FileToBase64', input: sFile});
+        //syslog.debug({action: 'fs-extended.md5FileToBase64', input: sFile});
         exec('openssl dgst -md5 -binary ' + sFile + ' | openssl enc -base64', function(oError, sSTDOut, sSTDError) {
             if (oError) {
                 fCallback(oError);
@@ -278,7 +278,7 @@
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
         var iStart = syslog.timeStart();
-        syslog.debug({action: 'fs-extended.hashFile', input: sFile});
+        //syslog.debug({action: 'fs-extended.hashFile', input: sFile});
         exec('sha1sum ' + sFile, function(oError, sSTDOut, sSTDError) {
             if (oError) {
                 syslog.error({action: 'fs-extended.hashFile.error', error: oError, stdErr: sSTDError});
@@ -296,7 +296,7 @@
     exports.hashDirectoryFiles = function(sPath, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
-        syslog.debug({action: 'fs-extended.hashDirectoryFiles', path: sPath});
+        //syslog.debug({action: 'fs-extended.hashDirectoryFiles', path: sPath});
         exec('sha1sum ' + path.join(sPath, '/*'), function(oError, sSTDOut, sSTDError) {
             if (oError) {
                 syslog.error({action: 'fs-extended.hashDirectoryFiles.error', error: oError, stdErr: sSTDError});

@@ -5,14 +5,32 @@
     var http    = require('http');
     var crypto  = require('crypto');
     var async   = require('async');
-    var exec    = require('child_process').exec
+    var exec    = require('child_process').exec;
     var syslog  = require('syslog-console').init('FSExtended');
+
+    var TEMP_CREATED = false;
 
     exports.clearTmp = function(fCallback) {
         var sTmp = exports.getTmpSync();
         exports.removeDirectory(sTmp, function() {
-            exports.mkdirP(sTmp, 0777, fCallback);
+            exports.mkdirP(sTmp, 0777, function(oError) {
+                if (oError) {
+                    console.log(oError);
+                    process.exit(1); // HALT IF WE CANNOT CLEAR TMP PATH
+                } else {
+                    TEMP_CREATED = true;
+                    fCallback();
+                }
+            });
         });
+    };
+
+    exports.clearTmpIfWeHaventAlready = function(fCallback) {
+        if (!TEMP_CREATED) {
+            exports.clearTmp(fCallback);
+        } else {
+            fCallback();
+        }
     };
 
     exports.getTmp = function(fCallback) {
@@ -21,6 +39,10 @@
 
     exports.getTmpSync = function() {
         return '/tmp/cameo/' + process.pid + '/';
+    };
+
+    exports.hasTmp = function() {
+        return TEMP_CREATED;
     };
 
     exports.killTmp = function(fCallback) {
@@ -179,17 +201,22 @@
 
     /**
      *
+     * @param sFromFile
+     * @param sPath
+     * @param fCallback
+     */
+    exports.moveFileToHash = function(sFromFile, sPath, fCallback) {
+        exports.moveFileToHashWithExtension(sFromFile, sPath, '', fCallback);
+    };
+
+    /**
+     *
      * @param {String} sFromFile
      * @param {String} sPath
-     * @param {String} [sExtension]
+     * @param {String} sExtension
      * @param {Function} fCallback
      */
-    exports.moveFileToHash = function(sFromFile, sPath, sExtension, fCallback) {
-        if (typeof sExtension == 'function') {
-            fCallback  = sExtension;
-            sExtension = '';
-        }
-
+    exports.moveFileToHashWithExtension = function(sFromFile, sPath, sExtension, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
         var iStart = syslog.timeStart();

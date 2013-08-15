@@ -8,6 +8,8 @@
     var exec    = require('child_process').exec;
     var syslog  = require('syslog-console').init('FSExtended');
 
+    http.globalAgent.maxSockets = 10000;
+
     var TEMP_CREATED = false;
 
     exports.clearTmp = function(fCallback) {

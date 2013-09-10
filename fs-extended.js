@@ -107,7 +107,7 @@
     exports.copyFile = function(sFromFile, sToFile, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
-        var iStart = syslog.timeStart();
+        var sTimer = syslog.timeStart('fs-extended.copyFile');
         if (sFromFile != sToFile) {
             //syslog.debug({action: 'fs-extended.copyFile', from: sFromFile, to: sToFile});
             util.pump(fs.createReadStream(sFromFile), fs.createWriteStream(sToFile), function(oError) { // CANNOT use fs.rename due to partition limitations
@@ -115,7 +115,7 @@
                     syslog.error({action: 'fs-extended.copyFile.error', error: oError});
                     fCallback(oError);
                 } else {
-                    syslog.timeStop(iStart, {action: 'fs-extended.copyFile.done', output: sToFile});
+                    syslog.timeStop(sTimer, {output: sToFile});
                     fCallback(null, sToFile);
                 }
             });
@@ -175,17 +175,16 @@
 
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
-        var iStart = syslog.timeStart();
-        //syslog.debug({action: 'fs-extended.copyFileToHash', from: sFromFile, path: sPath, extension: sExtension});
+        var sTimer = syslog.timeStart('fs-extended.copyFileToHash');
         exports.hashFile(sFromFile, function(oError, sHash) {
             if (oError) {
-                syslog.debug({action: 'fs-extended.copyFileToHash.hashFile.error', error: oError});
+                syslog.error({action: 'fs-extended.copyFileToHash.hashFile.error', input: sFromFile, error: oError});
                 fCallback(oError);
             } else {
                 var sDestination = path.join(sPath, sHash) + sExtension;
                 exports.copyFile(sFromFile, sDestination, function(oCopyError, sDestination) {
                     if (oCopyError) {
-                        syslog.debug({action: 'fs-extended.copyFileToHash.copyFile.error', error: oCopyError});
+                        syslog.error({action: 'fs-extended.copyFileToHash.copyFile.error', input: sFromFile, error: oCopyError});
                         fCallback(oCopyError);
                     } else {
                         var oOutput = {
@@ -193,7 +192,7 @@
                             hash: sHash
                         };
 
-                        syslog.timeStop(iStart, {action: 'fs-extended.copyFileToHash.done', output: oOutput});
+                        syslog.timeStop(sTimer, {input: sFromFile, output: oOutput});
                         fCallback(null, oOutput);
                     }
                 });
@@ -221,17 +220,16 @@
     exports.moveFileToHashWithExtension = function(sFromFile, sPath, sExtension, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
-        var iStart = syslog.timeStart();
-        //syslog.debug({action: 'fs-extended.moveFileToHash', from: sFromFile, path: sPath, extension: sExtension});
+        var sTimer = syslog.timeStart('fs-extended.moveFileToHash');
         exports.hashFile(sFromFile, function(oError, sHash) {
             if (oError) {
-                syslog.debug({action: 'fs-extended.moveFileToHash.hashFile.error', error: oError});
+                syslog.error({action: 'fs-extended.moveFileToHash.hashFile.error', input: sFromFile, error: oError});
                 fCallback(oError);
             } else {
                 var sDestination = path.join(sPath, sHash) + sExtension;
                 exports.moveFile(sFromFile, sDestination, function(oMoveError, sDestination) {
                     if (oMoveError) {
-                        syslog.debug({action: 'fs-extended.moveFileToHash.moveFile.error', error: oMoveError});
+                        syslog.error({action: 'fs-extended.moveFileToHash.moveFile.error', input: sFromFile, error: oMoveError});
                         fCallback(oMoveError);
                     } else {
                         var oOutput = {
@@ -239,7 +237,7 @@
                             hash: sHash
                         };
 
-                        syslog.timeStop(iStart, {action: 'fs-extended.moveFileToHash.done', output: oOutput});
+                        syslog.timeStop(sTimer, {input: sFromFile, output: oOutput});
                         fCallback(null, oOutput);
                     }
                 });
@@ -251,24 +249,22 @@
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
         if (sFromFile != sToFile) {
-            var iStart = syslog.timeStart();
-            //syslog.debug({action: 'fs-extended.moveFile', from: sFromFile, to: sToFile});
+            var sTimer = syslog.timeStart('fs-extended.moveFile');
             exports.copyFile(sFromFile, sToFile, function(oCopyError) {
                 if (oCopyError) {
-                    syslog.error({action: 'fs-extended.moveFile.copy', error: oCopyError});
+                    syslog.error({action: 'fs-extended.moveFile.copy', input: sFromFile, error: oCopyError});
                 }
 
                 fs.unlink(sFromFile, function(oUnlinkError) {
                     if (oUnlinkError) {
-                        syslog.error({action: 'fs-extended.moveFile.unlink', error: oUnlinkError});
+                        syslog.error({action: 'fs-extended.moveFile.unlink', input: sFromFile, error: oUnlinkError});
                     }
 
-                    syslog.timeStop(iStart, {action: 'fs-extended.moveFile.done', output: sToFile});
+                    syslog.timeStop(sTimer, {input: sFromFile, output: sToFile});
                     fCallback(null, sToFile);
                 });
             });
         } else {
-            //syslog.debug({action: 'fs-extended.moveFile.sameFile', output: sToFile});
             fCallback(null, sToFile);
         }
     };
@@ -306,8 +302,7 @@
     exports.hashFile = function(sFile, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
-        var iStart = syslog.timeStart();
-        //syslog.debug({action: 'fs-extended.hashFile', input: sFile});
+        var sTimer = syslog.timeStart('fs-extended.hashFile');
         exec('sha1sum ' + sFile, function(oError, sSTDOut, sSTDError) {
             if (oError) {
                 syslog.error({action: 'fs-extended.hashFile.error', error: oError, stdErr: sSTDError});
@@ -316,7 +311,7 @@
                 var aHash = sSTDOut.replace(/^\s+|\s+$/g, '').split(' ');
                 var sHash = aHash[0];
 
-                syslog.timeStop(iStart, {action: 'fs-extended.hashFile.done', output: sHash});
+                syslog.timeStop(sTimer, {output: sHash});
                 fCallback(null, sHash);
             }
         });
@@ -345,23 +340,49 @@
         });
     };
 
+    exports.download = function(sUrl, sType, fCallback, iRedirects) {
+        fCallback  = typeof fCallback == 'function' ? fCallback  : function() {};
+        sType      = sType      || 'utf8';
+        iRedirects = iRedirects || 0;
+
+        var oHTTP = http;
+        if (url.parse(sUrl).protocol == 'https:') {
+            oHTTP = require('https');
+        }
+
+        oHTTP.get(sUrl, function(oResponse){
+            if (oResponse.statusCode == 302 && iRedirects < 10) {
+                exports.download(oResponse.headers.location, sType, fCallback, iRedirects + 1);
+            } else {
+                var sContents = '';
+
+                oResponse.setEncoding(sType);
+                oResponse.on('data', function (sChunk) {
+                    sContents += sChunk;
+                });
+
+                oResponse.on('end', function () {
+                    fCallback(sContents);
+                });
+            }
+        });
+    };
+
     exports.downloadFile = function(sUrl, sType, fCallback, iRedirects) {
         fCallback  = typeof fCallback == 'function' ? fCallback  : function() {};
         sType      = sType      || 'utf8';
         iRedirects = iRedirects || 0;
 
-        var oUrl = url.parse(sUrl);
-
-        var oOptions = {
-            host: oUrl.hostname,
-            port: 80,
-            path: oUrl.pathname
-        };
 
         var sExtension = path.extname(sUrl);
-
         var oSHASum    = crypto.createHash('sha1');
-        http.get(oOptions, function(oResponse){
+        var oHTTP      = http;
+        if (url.parse(sUrl).protocol == 'https:') {
+            oHTTP = require('https');
+        }
+
+        var sTimer = syslog.timeStart('FSX.downloadFile');
+        oHTTP.get(sUrl, function(oResponse){
             if (oResponse.statusCode == 302 && iRedirects < 10) {
                 exports.downloadFile(oResponse.headers.location, sType, fCallback, iRedirects + 1);
             } else {
@@ -378,6 +399,7 @@
                     var sFinalFile = exports.getTmpSync() + sHash + sExtension;
                     fs.writeFile(sFinalFile, sContents, sType, function(oError) {
                         fs.chmod(sFinalFile, 0777, function() {
+                            syslog.timeStop(sTimer, {url: sUrl, type: sType});
                             fCallback(sFinalFile, sHash);
                         });
                     });

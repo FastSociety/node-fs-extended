@@ -17,12 +17,16 @@
         exports.removeDirectory(sTmp, function() {
             exports.mkdirP(sTmp, 0777, function(oError) {
                 if (oError) {
-                    console.log(oError);
-                    process.exit(1); // HALT IF WE CANNOT CLEAR TMP PATH
-                } else {
-                    TEMP_CREATED = true;
-                    fCallback();
+                    if (oError.code == 'EEXIST') {
+                        syslog.warning({action: 'fs-extended:clearTmp', error: oError});
+                    } else {
+                        syslog.error({action: 'fs-extended:clearTmp', error: oError});
+                        process.exit(1);
+                    }
                 }
+
+                TEMP_CREATED = true;
+                fCallback();
             });
         });
     };

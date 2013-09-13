@@ -114,14 +114,33 @@
         var sTimer = syslog.timeStart('fs-extended.copyFile');
         if (sFromFile != sToFile) {
             //syslog.debug({action: 'fs-extended.copyFile', from: sFromFile, to: sToFile});
-            util.pump(fs.createReadStream(sFromFile), fs.createWriteStream(sToFile), function(oError) { // CANNOT use fs.rename due to partition limitations
-                if (oError) {
-                    syslog.error({action: 'fs-extended.copyFile.error', error: oError});
-                    fCallback(oError);
-                } else {
-                    syslog.timeStop(sTimer, {output: sToFile});
-                    fCallback(null, sToFile);
+            // CANNOT use fs.rename due to partition limitations
+            var oReader = fs.createReadStream(sFromFile);
+            var oWriter = fs.createWriteStream(sToFile);
+            oReader.pipe(oWriter);
+
+            var bCallbackCalled = false;
+
+            var fDone = function(oError, sToFile) {
+                if (!bCallbackCalled) {
+                    bCallbackCalled = true;
+                    fCallback(oError, sToFile);
                 }
+            };
+
+            oReader.on('error', function(oError) {
+                syslog.debug({action: 'fs-extended.copyFile.reader.error', input: sFromFile, output: sToFile, error: oError});
+                fDone(oError);
+            });
+
+            oWriter.on('error', function(oError) {
+                syslog.debug({action: 'fs-extended.copyFile.writer.error', input: sFromFile, output: sToFile, error: oError});
+                fDone(oError);
+            });
+
+            oWriter.on('close', function() {
+                syslog.timeStop(sTimer, {output: sToFile});
+                fDone(null, sToFile);
             });
         } else {
             //syslog.debug({action: 'fs-extended.copyFile.sameFile', output: sToFile});

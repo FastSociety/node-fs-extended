@@ -75,10 +75,14 @@
         fs.stat(sPath, function(oError, oStat) {
             if (oStat !== undefined) {
                 if (oStat.isDirectory()) {
-                    exec('rm ' + path.join(sPath, '/*'), function() {
-                        fs.rmdir(sPath, function() {
-                            fCallback(sPath);
-                        });
+                    // Mark-> the below was never cleaning up sPath in a local test
+                    // exec('rm ' + path.join(sPath, '/*'), function() {
+                    //     fs.rmdir(sPath, function() {
+                    //         fCallback(sPath);
+                    //     });
+                    // });                    
+                    exec('rm -rf ' + sPath, function() {
+                        fCallback(sPath);
                     });
                 } else {
                     fs.unlink(sPath, function() {

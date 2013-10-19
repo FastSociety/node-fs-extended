@@ -421,17 +421,29 @@
                     sContents += sChunk;
                 });
 
+                oResponse.on('error', function (oError) {
+                    syslog.error({action: 'fs-extended.downloadFile.response.error', url: sUrl, type: sType, error: e});
+                    fCallback(oError);
+                });
+
                 oResponse.on('end', function () {
                     var sHash      = oSHASum.digest('hex');
                     var sFinalFile = exports.getTmpSync() + sHash + sExtension;
                     fs.writeFile(sFinalFile, sContents, sType, function(oError) {
-                        fs.chmod(sFinalFile, 0777, function() {
-                            syslog.timeStop(sTimer, {url: sUrl, type: sType});
-                            fCallback(sFinalFile, sHash);
-                        });
+                        if (oError) {
+                            fCallback(oError);
+                        } else {
+                            fs.chmod(sFinalFile, 0777, function() {
+                                syslog.timeStop(sTimer, {url: sUrl, type: sType});
+                                fCallback(null, sFinalFile, sHash);
+                            });
+                        }
                     });
                 });
             }
+        }).on('error', function(e) {
+            syslog.error({action: 'fs-extended.downloadFile.request.error', url: sUrl, type: sType, error: e});
+            fCallback(e);
         });
     };
 

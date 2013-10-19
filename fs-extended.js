@@ -404,8 +404,12 @@
         var sExtension = path.extname(sUrl);
         var oSHASum    = crypto.createHash('sha1');
         var oHTTP      = http;
-        if (url.parse(sUrl).protocol == 'https:') {
+        var sProtocol  = url.parse(sUrl).protocol;
+
+        if (sProtocol == 'https:') {
             oHTTP = require('https');
+        } else if (sProtocol === null) {
+            sUrl = 'http:' + sUrl;
         }
 
         var sTimer = syslog.timeStart('FSX.downloadFile');
@@ -431,6 +435,7 @@
                     var sFinalFile = exports.getTmpSync() + sHash + sExtension;
                     fs.writeFile(sFinalFile, sContents, sType, function(oError) {
                         if (oError) {
+                            syslog.error({action: 'fs-extended.downloadFile.write.error', url: sUrl, type: sType, error: oError});
                             fCallback(oError);
                         } else {
                             fs.chmod(sFinalFile, 0777, function() {

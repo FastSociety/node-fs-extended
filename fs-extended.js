@@ -401,10 +401,11 @@
         iRedirects = iRedirects || 0;
 
 
-        var sExtension = path.extname(sUrl);
+        var oUrl       = url.parse(sUrl);
+        var sExtension = path.extname(oUrl.pathname);
         var oSHASum    = crypto.createHash('sha1');
         var oHTTP      = http;
-        var sProtocol  = url.parse(sUrl).protocol;
+        var sProtocol  = oUrl.protocol;
 
         if (sProtocol == 'https:') {
             oHTTP = require('https');
@@ -438,6 +439,7 @@
                             syslog.error({action: 'fs-extended.downloadFile.write.error', url: sUrl, type: sType, error: oError});
                             fCallback(oError);
                         } else {
+                            syslog.debug({action: 'fs-extended.downloadFile.write', url: sUrl, type: sType, file: sFinalFile});
                             fs.chmod(sFinalFile, 0777, function() {
                                 syslog.timeStop(sTimer, {url: sUrl, type: sType});
                                 fCallback(null, sFinalFile, sHash);

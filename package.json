@@ -6,10 +6,10 @@
     "homepage": "http://enobrev.com/",
     "main" : "./fs-extended",
     "dependencies": {
-        "async":            ">=0.1.16"
+        "async":            ">=0.1.16",
+        "syslog-console":      "git+ssh://git@github.com:FastSociety/node-syslog-console.git"
     },
     "devDependencies": {
-        "nodeunit":            ">=0.7.4",
-        "syslog-console":      "git+ssh://git@github.com:FastSociety/node-syslog-console.git"
+        "nodeunit":            ">=0.7.4"
     }
 }

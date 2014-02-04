@@ -511,12 +511,11 @@
 
         var sTimer = syslog.timeStart('FSX.downloadFile');
         async.auto({
-            randomName:               function(fAsyncCallback, oResults) { crypto.randomBytes(64,             fAsyncCallback);              },
-            fullPath:  ['randomName', function(fAsyncCallback, oResults) { fAsyncCallback(null, exports.getTmpSync() + oResults.randomName) }],
+            randomName:               function(fAsyncCallback, oResults) { crypto.randomBytes(16,             fAsyncCallback);                                          },
+            fullPath:  ['randomName', function(fAsyncCallback, oResults) { fAsyncCallback(null, exports.getTmpSync() + 'random-' + oResults.randomName.toString('hex')) }],
             download:  ['fullPath',   function(fAsyncCallback, oResults) {
                 var oWriter     = fs.createWriteStream(oResults.fullPath, {
-                    mode:       0777,
-                    encoding:   sType
+                    mode:       0777
                 });
 
                 oHTTP.get(sUrl, function(oResponse){
@@ -536,7 +535,6 @@
                             fAsyncCallback(null, oResults.fullPath);
                         });
 
-                        oResponse.setEncoding(sType);
                         oResponse.pipe(oWriter);
                     }
                 });
@@ -551,11 +549,8 @@
             }
 
             syslog.timeStop(sTimer, {url: sUrl, type: sType, output: oResults});
-            fCallback(null, oResults.path, oResults.hash);
-        }).on('error', function(e) {
-            syslog.error({action: 'fs-extended.downloadFile.request.error', url: sUrl, type: sType, error: e});
-            fCallback(e);
-        });
+            fCallback(null, oResults.move.path, oResults.move.hash);
+        })
     };
 
     /**

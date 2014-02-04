@@ -122,38 +122,67 @@
         })
     };
 
+    exports.locks = {};
     exports.LOCK_TYPES = {
         READ:  'sh',
         WRITE: 'ex'
     };
 
-    exports.locks = {};
+    exports._addLock  = function(sFile, iHandle) {
+        if (exports.locks[sFile] === undefined) {
+            exports.locks[sFile] = [];
+        }
+
+        exports.locks[sFile].push(iHandle);
+    };
+
+    exports._getLock  = function(sFile) {
+        if (exports.locks[sFile] === undefined) {
+            exports.locks[sFile] = [];
+        }
+
+        return exports.locks[sFile][exports.locks[sFile].length - 1];
+    };
+
+    exports._popLock  = function(sFile) {
+        if (exports.locks[sFile] === undefined) {
+            exports.locks[sFile] = [];
+        }
+
+        return exports.locks[sFile].pop()
+    };
+
     exports.lock  = function(sFile, oOptions, fCallback) {
-        sFile = '/var/lock/' + path.resolve(sFile.replace(/^\/?var\/lock\//, '')).replace(/^\//, '');
+        sFile = path.resolve(sFile);
+        sFile = sFile.replace(/^\/?var\/lock\//, '');
+        sFile = sFile.replace(/^\//, '');
+        sFile = '/var/lock/' + sFile;
+
         oOptions.lock    = oOptions.lock !== undefined ? oOptions.lock    : exports.LOCK_TYPES.WRITE;
         oOptions.retries = oOptions.lock !== undefined ? oOptions.retries : 0;
         oOptions.wait    = oOptions.lock !== undefined ? oOptions.wait    : 0;
 
+        syslog.debug({action: 'fs-extended.lock', file: sFile, options: oOptions});
         exports.mkdirP(path.dirname(sFile), 0777, function(oError) { // mocking path the file being locked in /var/lock
             fs.open(sFile, 'w+', function(oOpenError, iFileHandle) { // creating empty writable file on which we'll run flock
                 if (oOpenError) {
-                    syslog.error({action: 'fs-extended.lock.open.error', file: sFile, type: oOptions.lock, remaining: oOptions.retries, wait: oOptions.wait, error: oOpenError});
+                    syslog.error({action: 'fs-extended.lock.open.error', file: sFile, options: oOptions, error: oOpenError});
                     fCallback(oOpenError);
                 } else {
                     fs.flock(iFileHandle, oOptions.lock + 'nb', function(oLockError) { // generate a non-blocking lock on the file to allow javascript to handle the retry
                         if (!oLockError) {
-                            syslog.debug({action: 'fs-extended.lock.locked', file: sFile, type: oOptions.lock});
-                            exports.locks[sFile] = iFileHandle;
+                            syslog.debug({action: 'fs-extended.lock.locked', file: sFile, options: oOptions, handle: iFileHandle});
+                            exports._addLock(sFile, iFileHandle);
                             fCallback()
                         } else if (oOptions.retries > 0) {
-                            syslog.warn({action: 'fs-extended.lock.retry', file: sFile, type: oOptions.lock, remaining: oOptions.retries, wait: oOptions.wait});
+                            syslog.warn({action: 'fs-extended.lock.retry', file: sFile, options: oOptions});
                             oOptions.retries -= 1;
 
                             setTimeout(function() {
                                 exports.lock(sFile, oOptions, fCallback);
                             }, oOptions.wait);
                         } else {
-                            syslog.error({action: 'fs-extended.lock.error', file: sFile, type: oOptions.lock, remaining: oOptions.retries, wait: oOptions.wait, error: oLockError});
+                            syslog.error({action: 'fs-extended.lock.error', file: sFile, options: oOptions, error: oLockError});
                             fCallback(oLockError);
                         }
                     });
@@ -177,29 +206,33 @@
             return fCallback(new Error('No File Given'));
         }
 
-        sFile = '/var/lock/' + path.resolve(sFile.replace(/^\/?var\/lock\//, '')).replace(/^\//, '');
+        sFile = path.resolve(sFile);
+        sFile = sFile.replace(/^\/?var\/lock\//, '');
+        sFile = sFile.replace(/^\//, '');
+        sFile = '/var/lock/' + sFile;
 
-        var iFileHandle = exports.locks[sFile];
+        syslog.debug({action: 'fs-extended.unlock', file: sFile});
+        var iFileHandle = exports._getLock(sFile);
         if (iFileHandle) { // lock was created by this process, so just delete the in-memory lock and close the file
-            syslog.debug({action: 'fs-extended.unlock.unlocked', file: sFile});
-            delete exports.locks[sFile];
+            syslog.debug({action: 'fs-extended.unlock.unlocked', file: sFile, handle: iFileHandle});
+            exports._popLock(sFile);
             fs.close(iFileHandle, fCallback);
         } else {
-            exports.mkdirP(path.dirname(sFile), 0777, function(oError) { // mocking path the file being locked in /var/lock
-                fs.open(sFile, 'w+', function(oOpenError, iFileHandle) { // instead of looking for the file, we'll just create it and explicitly unlock it
-                    if (oOpenError) {
-                        fCallback(oOpenError);
-                    } else {
-                        syslog.debug({action: 'fs-extended.unlock.unlocked', file: sFile});
-                        delete exports.locks[sFile];
-                        fs.flock(iFileHandle, 'un', fCallback);
-                    }
-                });
+            fs.open(sFile, 'r+', function(oOpenError, iFileHandle) {
+                if (oOpenError) {
+                    syslog.debug({action: 'fs-extended.unlock.missing', file: sFile});
+                    fCallback(null); // lock file does not exist - consider it unlocked
+                } else {
+                    syslog.debug({action: 'fs-extended.unlock.unlocked', file: sFile, handle: iFileHandle});
+                    fs.flock(iFileHandle, 'un', fCallback);
+                }
             });
         }
     };
 
     exports.copyFile = function(sFromFile, sToFile, fCallback) {
+        syslog.debug({action: 'fs-extended.copyFile', input: sFromFile, output: sToFile});
+
         async.auto({
             lockRead:  function(fAsyncCallback, oResults) { exports.readLock(sFromFile, {retries: 300, wait: 100},  fAsyncCallback)},
             lockWrite: function(fAsyncCallback, oResults) { exports.writeLock(sToFile,  {retries: 300, wait: 100}, fAsyncCallback)},

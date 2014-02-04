@@ -14,9 +14,9 @@
         console.log('DONE', oError, oResults);
 
         if (!oError) {
-            fsX.hashFile(oResults.sixth, function(oError, sHash) {
-                console.log(oResults.sixth, sHash === sOriginalHash);
-                fsX.removeDirectory(oResults.sixth, process.exit);
+            fsX.hashFile(oResults.first, function(oError, sHash) {
+                console.log(oResults.first, sHash === sOriginalHash);
+                fsX.removeDirectory(oResults.first, process.exit);
             });
         }
     });

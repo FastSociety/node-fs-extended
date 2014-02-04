@@ -129,7 +129,7 @@
 
     exports.locks = {};
     exports.lock  = function(sFile, oOptions, fCallback) {
-        sFile = '/var/lock/' + sFile.replace(/^\//, '').replace(/^var\/lock\//, '');
+        sFile = '/var/lock/' + path.resolve(sFile.replace(/^\/?var\/lock\//, '')).replace(/^\//, '');
         oOptions.lock    = oOptions.lock !== undefined ? oOptions.lock    : exports.LOCK_TYPES.WRITE;
         oOptions.retries = oOptions.lock !== undefined ? oOptions.retries : 0;
         oOptions.wait    = oOptions.lock !== undefined ? oOptions.wait    : 0;
@@ -177,7 +177,7 @@
             return fCallback(new Error('No File Given'));
         }
 
-        sFile = '/var/lock/' + sFile.replace(/^\//, '').replace(/^var\/lock\//, '');
+        sFile = '/var/lock/' + path.resolve(sFile.replace(/^\/?var\/lock\//, '')).replace(/^\//, '');
 
         var iFileHandle = exports.locks[sFile];
         if (iFileHandle) { // lock was created by this process, so just delete the in-memory lock and close the file

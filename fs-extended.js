@@ -153,6 +153,11 @@
     };
 
     exports.lock  = function(sFile, oOptions, fCallback) {
+        if (!exports._canLock()) {
+            syslog.debug({action: 'fs-extended.unlock.skipped.incompatible.os', file: sFile, options: oOptions});
+            return fCallback();
+        }
+
         sFile = path.resolve(sFile);
         sFile = sFile.replace(/^\/?var\/lock\//, '');
         sFile = sFile.replace(/^\//, '');
@@ -191,6 +196,10 @@
         });
     };
 
+    exports._canLock = function() {
+        return process.platform == 'linux';
+    }
+
     exports.readLock  = function(sFile, oOptions, fCallback) {
         oOptions.lock = exports.LOCK_TYPES.READ;
         exports.lock(sFile, oOptions, fCallback);
@@ -202,6 +211,11 @@
     };
 
     exports.unlock = function(sFile, fCallback) {
+        if (!exports._canLock()) {
+            syslog.debug({action: 'fs-extended.unlock.skipped.incompatible.os', file: sFile});
+            return fCallback();
+        }
+
         if (sFile === undefined) {
             return fCallback(new Error('No File Given'));
         }

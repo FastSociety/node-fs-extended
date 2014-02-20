@@ -7,6 +7,13 @@
     var async   = require('async');
     var exec    = require('child_process').exec;
     var syslog  = require('syslog-console').init('FSExtended');
+    var oConfig = {
+        FLOCK: true
+    };
+
+    if (fs.existsSync('/etc/cameo/.config.js')) {
+        oConfig = require('/etc/cameo/.config.js');
+    }
 
     http.globalAgent.maxSockets = 10000;
 
@@ -197,8 +204,9 @@
     };
 
     exports._canLock = function() {
-        return process.platform == 'linux';
-    }
+        return oConfig.FLOCK
+            && process.platform == 'linux';
+    };
 
     exports.readLock  = function(sFile, oOptions, fCallback) {
         oOptions.lock = exports.LOCK_TYPES.READ;

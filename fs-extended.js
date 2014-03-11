@@ -161,7 +161,7 @@
 
     exports.lock  = function(sFile, oOptions, fCallback) {
         if (!exports._canLock()) {
-            syslog.debug({action: 'fs-extended.lock.skipped.incompatible.os', file: sFile, options: oOptions});
+            syslog.debug({action: 'fs-extended.lock.disabled', file: sFile, options: oOptions});
             return fCallback();
         }
 
@@ -220,7 +220,7 @@
 
     exports.unlock = function(sFile, fCallback) {
         if (!exports._canLock()) {
-            syslog.debug({action: 'fs-extended.unlock.skipped.incompatible.os', file: sFile});
+            syslog.debug({action: 'fs-extended.unlock.disabled', file: sFile});
             return fCallback();
         }
 

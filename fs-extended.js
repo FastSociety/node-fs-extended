@@ -8,7 +8,9 @@
     var exec    = require('child_process').exec;
     var syslog  = require('syslog-console').init('FSExtended');
     var oConfig = {
-        FLOCK: true
+        FEATURES: {
+            FLOCK: false
+        }
     };
 
     if (fs.existsSync('/etc/cameo/.config.js')) {
@@ -204,7 +206,7 @@
     };
 
     exports._canLock = function() {
-        return oConfig.FLOCK
+        return oConfig.FEATURES.FLOCK
             && process.platform == 'linux';
     };
 

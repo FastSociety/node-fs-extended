@@ -1,5 +1,6 @@
 
-    require("long-stack-traces");
+    require("longjohn");
+
     
     var fs      = require('fs-ext');
     var path    = require('path');

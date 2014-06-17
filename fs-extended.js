@@ -83,7 +83,7 @@
 
         fs.stat(sPath, function(oError, oStat) {
             if (oStat !== undefined) {
-                syslog.debug({action: 'fs-extended:removeDirectory', path: sPath });
+                syslog.debug({action: 'fs-extended:removeDirectory', path: sPath, stack: new Error().stack });
                 if (oStat.isDirectory()) {
                     exec('rm -rf ' + sPath, function() {
                         fCallback(sPath);

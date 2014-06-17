@@ -1,3 +1,6 @@
+
+    require("long-stack-traces");
+    
     var fs      = require('fs-ext');
     var path    = require('path');
     var util    = require('util');

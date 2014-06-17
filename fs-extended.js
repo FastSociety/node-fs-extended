@@ -83,15 +83,15 @@
 
         fs.stat(sPath, function(oError, oStat) {
             if (oStat !== undefined) {
-                if (oStat.isDirectory()) {
-                    exec('rm -rf ' + sPath, function() {
+                // if (oStat.isDirectory()) {
+                //     exec('rm -rf ' + sPath, function() {
+                //         fCallback(sPath);
+                //     });
+                // } else {
+                //     fs.unlink(sPath, function() {
                         fCallback(sPath);
-                    });
-                } else {
-                    fs.unlink(sPath, function() {
-                        fCallback(sPath);
-                    });
-                }
+                //     });
+                // }
             } else {
                 fCallback(sPath);
             }

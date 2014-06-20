@@ -1,3 +1,7 @@
+
+    require("longjohn");
+
+    
     var fs      = require('fs-ext');
     var path    = require('path');
     var util    = require('util');
@@ -8,7 +12,9 @@
     var exec    = require('child_process').exec;
     var syslog  = require('syslog-console').init('FSExtended');
     var oConfig = {
-        FLOCK: true
+        FEATURES: {
+            FLOCK: false
+        }
     };
 
     if (fs.existsSync('/etc/cameo/.config.js')) {
@@ -81,13 +87,8 @@
 
         fs.stat(sPath, function(oError, oStat) {
             if (oStat !== undefined) {
+                syslog.debug({action: 'fs-extended:removeDirectory', path: sPath, stack: new Error().stack });
                 if (oStat.isDirectory()) {
-                    // Mark-> the below was never cleaning up sPath in a local test
-                    // exec('rm ' + path.join(sPath, '/*'), function() {
-                    //     fs.rmdir(sPath, function() {
-                    //         fCallback(sPath);
-                    //     });
-                    // });                    
                     exec('rm -rf ' + sPath, function() {
                         fCallback(sPath);
                     });
@@ -204,7 +205,7 @@
     };
 
     exports._canLock = function() {
-        return oConfig.FLOCK
+        return oConfig.FEATURES.FLOCK
             && process.platform == 'linux';
     };
 

@@ -8,7 +8,7 @@
     "dependencies": {
         "async":          ">=0.1.16",
         "fs-ext":         ">=0.3.2",
-        "long-stack-traces": "*"
+        "longjohn":       "*"
     },
     "devDependencies": {
         "nodeunit":            ">=0.7.4",

@@ -1,6 +1,3 @@
-
-    require("long-stack-traces");
-    
     var fs      = require('fs-ext');
     var path    = require('path');
     var util    = require('util');
@@ -643,5 +640,24 @@
                     }
                 });
             }
+        });
+    };
+
+    /**
+     *
+     * @param {Array} aFiles
+     * @param {Function} fCallback
+     */
+    exports.concat = function(aFiles, fCallback) {
+        var sFiles = aFiles.join(' ');
+        var sPath  = exports.getTmpSync() + Math.random().toString(36).substring(8);
+        exec('cat ' + sFiles + ' >> ' +  sPath, function (oCatError, sStdOut, sStdErr) {
+
+            if (oCatError) {
+                syslog.error({action: 'fs-extended.concat.cat.error', error: oCatError});
+                return  fCallback(oCatError);
+            }
+
+            exports.moveFileToHash(sPath, exports.getTmpSync(), fCallback);
         });
     };

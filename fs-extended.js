@@ -652,12 +652,34 @@
         var sFiles = aFiles.join(' ');
         var sPath  = exports.getTmpSync() + Math.random().toString(36).substring(8);
         exec('cat ' + sFiles + ' >> ' +  sPath, function (oCatError, sStdOut, sStdErr) {
-
             if (oCatError) {
                 syslog.error({action: 'fs-extended.concat.cat.error', error: oCatError});
                 return  fCallback(oCatError);
             }
 
             exports.moveFileToHash(sPath, exports.getTmpSync(), fCallback);
+        });
+    };
+
+    /**
+     *
+     * @param {String} sFilePath
+     * @param {String} sSize an integer and optional unit (example: 10M is 10*1024*1024).  Units are K, M, G, T, P, E, Z, Y (powers of 1024) or KB, MB, ... (powers of 1000).
+     * @param {Function} fCallback
+     */
+    exports.split = function(sFilePath, sSize, fCallback) {
+        var sPath = exports.getTmpSync() + 'split-' + Math.random().toString(36).substring(8) + '-';
+        exec('split --verbose --bytes=' + sSize + ' ' + sFilePath + ' ' + sPath, function(oSplitError, sStdOut, sStdError) {
+            if (oSplitError) {
+                syslog.error({action: 'fs-extended.split.error', error: oSplitError});
+                return  fCallback(oSplitError);
+            }
+
+            var aOutput = sStdOut.replace(/creating file/g, '')  // text prefixing filenames in output
+                                 .replace(/[^a-z0-9\/\n-]/g, '') // surrounding quotes and backticks
+                                 .replace(/[\s\n\t]+$/g, '')     // trim
+                                 .split('\n');
+
+            fCallback(null, aOutput);
         });
     };

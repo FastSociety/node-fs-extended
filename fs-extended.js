@@ -683,3 +683,18 @@
             fCallback(null, aOutput);
         });
     };
+
+    /**
+     *
+     * @param {String} sFilePath
+     * @param {Function} fCallback
+     */
+    exports.fileSize = function(sFilePath, fCallback) {
+        fs.stat(sFilePath, function(oError, oStats) {
+            if (oError) {
+                return fCallback(oError);
+            }
+
+            fCallback(null, oStats.size);
+        });
+    };

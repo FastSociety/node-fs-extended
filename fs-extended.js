@@ -633,7 +633,7 @@
                 syslog.error({action: 'fs-extended.concat.cat.error', error: oCatError});
                 return  fCallback(oCatError);
             }
-g
+
             exports.moveFileToHash(sPath, sTempPath, fCallback);
         });
     };

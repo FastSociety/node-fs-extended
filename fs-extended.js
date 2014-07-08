@@ -621,20 +621,20 @@
     };
 
     /**
-     *
-     * @param {Array} aFiles
+     * @param {String}   sTempPath
+     * @param {Array}    aFiles
      * @param {Function} fCallback
      */
-    exports.concat = function(aFiles, fCallback) {
+    exports.concat = function(sTempPath, aFiles, fCallback) {
         var sFiles = aFiles.join(' ');
-        var sPath  = exports.getTmpSync() + Math.random().toString(36).substring(8);
+        var sPath  = sTempPath + Math.random().toString(36).substring(8);
         exec('cat ' + sFiles + ' >> ' +  sPath, function (oCatError, sStdOut, sStdErr) {
             if (oCatError) {
                 syslog.error({action: 'fs-extended.concat.cat.error', error: oCatError});
                 return  fCallback(oCatError);
             }
-
-            exports.moveFileToHash(sPath, exports.getTmpSync(), fCallback);
+g
+            exports.moveFileToHash(sPath, sTempPath, fCallback);
         });
     };
 

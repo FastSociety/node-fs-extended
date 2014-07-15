@@ -24,7 +24,7 @@
     exports.clearTmp = function(fCallback) {
         var sTmp = exports.getTmpSync();
         exports.removeDirectory(sTmp, function() {
-            exports.mkdirP(sTmp, 0777, function(oError) {
+            exports.mkdirP(sTmp, '0777', function(oError) {
                 if (oError) {
                     if (oError.code == 'EEXIST') {
                         syslog.warning({action: 'fs-extended:clearTmp', error: oError});
@@ -172,7 +172,7 @@
         oOptions.wait    = oOptions.lock !== undefined ? oOptions.wait    : 0;
 
         syslog.debug({action: 'fs-extended.lock', file: sFile, options: oOptions});
-        exports.mkdirP(path.dirname(sFile), 0777, function(oError) { // mocking path the file being locked in /var/lock
+        exports.mkdirP(path.dirname(sFile), '0777', function(oError) { // mocking path the file being locked in /var/lock
             fs.open(sFile, 'w+', function(oOpenError, iFileHandle) { // creating empty writable file on which we'll run flock
                 if (oOpenError) {
                     syslog.error({action: 'fs-extended.lock.open.error', file: sFile, options: oOptions, error: oOpenError});

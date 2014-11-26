@@ -162,7 +162,7 @@
 
     exports.lock  = function(sFile, oOptions, fCallback) {
         if (!exports._canLock()) {
-            syslog.debug({action: 'fs-extended.lock.disabled', file: sFile, options: oOptions});
+            // syslog.debug({action: 'fs-extended.lock.disabled', file: sFile, options: oOptions});
             return fCallback();
         }
 

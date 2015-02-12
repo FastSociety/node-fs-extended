@@ -26,14 +26,15 @@
     var TEMP_CREATED = false;
 
     exports.clearTmp = function(fCallback) {
+        // syslog.debug({action: 'fs-extended.clearTmp'});
         var sTmp = exports.getTmpSync();
         exports.removeDirectory(sTmp, function() {
-            exports.mkdirP(sTmp, 0777, function(oError) {
+            exports.mkdirP(sTmp, '0777', function(oError) {
                 if (oError) {
                     if (oError.code == 'EEXIST') {
-                        syslog.warning({action: 'fs-extended:clearTmp', error: oError});
+                        syslog.warning({action: 'fs-extended.clearTmp', error: oError});
                     } else {
-                        syslog.error({action: 'fs-extended:clearTmp', error: oError});
+                        syslog.error({action: 'fs-extended.clearTmp', error: oError});
                         process.exit(1);
                     }
                 }
@@ -85,9 +86,9 @@
     exports.removeDirectory = function(sPath, fCallback) {
         fCallback = typeof fCallback == 'function' ? fCallback  : function() {};
 
+        // syslog.debug({action: 'fs-extended.removeDirectory'});
         fs.stat(sPath, function(oError, oStat) {
             if (oStat !== undefined) {
-                // syslog.debug({action: 'fs-extended:removeDirectory', path: sPath, stack: new Error().stack });
                 if (oStat.isDirectory()) {
                     exec('rm -rf ' + sPath, function() {
                         fCallback(sPath);
@@ -612,7 +613,11 @@
     exports.mkdirP = function (sPath, iMode, fCallback) {
         fCallback = fCallback !== undefined ? fCallback : function() {};
 
-        exec('mkdir -p -m ' + iMode + ' ' + sPath, function(oError, oStdOut, oStdErr) {
+        var sCommand = 'mkdir -p -m ' + iMode + ' ' + sPath;
+        // syslog.debug({action: 'fs-extended.mkdirP', path: sPath, mode: iMode, command: sCommand});
+
+        exec(sCommand, function(oError, oStdOut, oStdErr) {
+            syslog.error({action: 'fs-extended.mkdirP.response', error: oError, stdout: oStdOut, stderr: oStdErr});
             fCallback(oError);
         });
     };

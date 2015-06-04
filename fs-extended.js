@@ -617,7 +617,6 @@
         // syslog.debug({action: 'fs-extended.mkdirP', path: sPath, mode: iMode, command: sCommand});
 
         exec(sCommand, function(oError, oStdOut, oStdErr) {
-            syslog.error({action: 'fs-extended.mkdirP.response', error: oError, stdout: oStdOut, stderr: oStdErr});
             fCallback(oError);
         });
     };

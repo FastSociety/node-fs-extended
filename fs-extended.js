@@ -25,6 +25,9 @@
 
     var TEMP_CREATED = false;
 
+    exports.EMPTY    = 'da39a3ee5e6b4b0d3255bfef95601890afd80709';
+    exports.ZEROZERO = '5ba93c9db0cff93f52b521d7420e43f6eda2784f';  // Comes up often for empty binary - specifically for audio thumbnails
+
     exports.clearTmp = function(fCallback) {
         // syslog.debug({action: 'fs-extended.clearTmp'});
         var sTmp = exports.getTmpSync();
